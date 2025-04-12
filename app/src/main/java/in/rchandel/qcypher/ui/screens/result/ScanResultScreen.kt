@@ -30,9 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import `in`.rchandel.qcypher.R
+import `in`.rchandel.qcypher.data.model.QRResult
 
 @Composable
-fun ScanResultScreen(scannedText: String) {
+fun ScanResultScreen(qrResult: QRResult) {
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -59,7 +60,7 @@ fun ScanResultScreen(scannedText: String) {
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
             Text(
-                text = scannedText,
+                text = qrResult.rawValue,
                 modifier = Modifier.padding(16.dp),
                 textAlign = TextAlign.Center
             )
@@ -79,13 +80,13 @@ fun ScanResultScreen(scannedText: String) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(onClick = {
-                    shareText(context, scannedText)
+                    shareText(context, qrResult.rawValue)
                 }) {
                     Text(text = "Share")
                 }
 
                 Button(onClick = {
-                    copyToClipboard(context, scannedText)
+                    copyToClipboard(context, qrResult.rawValue)
                 }) {
                     Text(text = "Copy")
                 }

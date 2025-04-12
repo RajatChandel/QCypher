@@ -51,14 +51,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import `in`.rchandel.qcypher.R
-import `in`.rchandel.qcypher.tools.QrAnalyser
 import androidx.hilt.navigation.compose.hiltViewModel
+import `in`.rchandel.qcypher.data.model.QRResult
 
 
 @Composable
 fun ScannerScreen(
     lensFacing: Int = CameraSelector.LENS_FACING_BACK,
-    onScanSuccess: (String) -> Unit,
+    onScanSuccess: (QRResult) -> Unit,
     viewModel: ScannerViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -94,7 +94,7 @@ fun ScannerScreen(
     // Listen to scan result
     LaunchedEffect(Unit) {
         viewModel.scanResult.collect { result ->
-            onScanSuccess(Uri.encode(result))
+            onScanSuccess(result)
         }
     }
 
@@ -229,186 +229,6 @@ fun ScannerScreen(
         }
     }
 
-}
-
-@Composable
-fun letsSee(
-    lensFacing: Int = CameraSelector.LENS_FACING_BACK,
-    onScanSuccess: (String) -> Unit
-) {
-    var code by remember {
-        mutableStateOf("")
-    }
-
-    var camera: Camera? = null
-
-    var cameraState by remember {
-        mutableStateOf(camera)
-    }
-
-    var zoomLevel by remember { mutableStateOf(0f) } // Zoom state
-
-    var lensFacingState by remember {
-        mutableIntStateOf(lensFacing)
-    }
-    val context = LocalContext.current
-    val lifeCycleOwner = LocalLifecycleOwner.current
-    val cameraController = remember {
-        LifecycleCameraController(context)
-    }
-
-    val cameraProviderFuture = remember {
-        ProcessCameraProvider.getInstance(context)
-    }
-    var hasCameraPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { granted ->
-            hasCameraPermission = granted
-        })
-
-    LaunchedEffect(key1 = true) {
-        launcher.launch(android.Manifest.permission.CAMERA)
-    }
-
-    key(lensFacingState) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                if (hasCameraPermission) {
-
-                    AndroidView(modifier = Modifier.weight(1f), factory = { context ->
-                        val previewView = PreviewView(context)
-                        val preview = androidx.camera.core.Preview.Builder().build()
-                        cameraProviderFuture.get().unbindAll()
-                        val selectorState = CameraSelector.Builder()
-                            .requireLensFacing(lensFacingState)
-                            .build()
-
-                        preview.setSurfaceProvider(previewView.surfaceProvider)
-                        val imageAnalysis = ImageAnalysis.Builder()
-                            .setTargetResolution(Size(previewView.width, previewView.height))
-                            .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
-                            .build()
-                        imageAnalysis.setAnalyzer(
-                            ContextCompat.getMainExecutor(context),
-                            QrAnalyser { result ->
-                                code = result
-                                onScanSuccess(Uri.encode(result))
-                                cameraProviderFuture.get().unbindAll()
-                            }
-                        )
-
-                        try {
-                            cameraState = cameraProviderFuture.get().bindToLifecycle(
-                                lifeCycleOwner,
-                                selectorState,
-                                preview,
-                                imageAnalysis
-                            )
-                            previewView.controller = cameraController
-                            cameraController.bindToLifecycle(lifeCycleOwner)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                        previewView
-                    })
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .background(color = Color.Black.copy(alpha = 0.7f))
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f), horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.2f)
-                            .fillMaxHeight()
-                            .background(color = Color.Black.copy(alpha = 0.7f))
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.2f)
-                            .fillMaxHeight()
-                            .background(color = Color.Black.copy(alpha = 0.7f))
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .background(color = Color.Black.copy(alpha = 0.7f))
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .padding(top = 48.dp)
-                    .align(alignment = Alignment.TopCenter)
-            ) {
-                Card(
-                    modifier = Modifier
-                        .background(color = Color.Black)
-                        .padding(8.dp)
-                        .fillMaxWidth(0.7f),
-                    colors = CardDefaults.cardColors(containerColor = Color.Black)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Image(painter = painterResource(id = R.drawable.baseline_history_24),
-                            contentDescription = "", modifier = Modifier.clickable {
-
-                            })
-                        SwitchCameraButton {
-                            if (lensFacingState == CameraSelector.LENS_FACING_FRONT) {
-                                lensFacingState = CameraSelector.LENS_FACING_BACK
-                            } else if (lensFacingState == CameraSelector.LENS_FACING_BACK) {
-                                lensFacingState =
-                                    CameraSelector.LENS_FACING_FRONT
-                            }
-                        }
-                        TorchView(cameraState = cameraState)
-                    }
-                }
-
-            }
-
-            Slider(
-                value = zoomLevel,
-                onValueChange = {
-                    zoomLevel = it
-                    cameraState?.cameraControl?.setLinearZoom(it / 10)
-                },
-                valueRange = 0f..(cameraState?.cameraInfo?.zoomState?.value?.maxZoomRatio
-                    ?: 10f), // Adjust range based on device capability
-                modifier = Modifier
-                    .width(200.dp)
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 100.dp)
-            )
-
-        }
-    }
 }
 
 @Composable

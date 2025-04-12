@@ -76,6 +76,8 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
+    implementation(libs.gson)
+
     implementation("androidx.camera:camera-core:${camerax_version}")
     implementation ("androidx.camera:camera-camera2:${camerax_version}")
     implementation ("androidx.camera:camera-lifecycle:${camerax_version}")

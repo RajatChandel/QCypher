@@ -14,6 +14,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
+import `in`.rchandel.qcypher.data.model.QRResult
+import `in`.rchandel.qcypher.di.QRTextAnalyser
+import `in`.rchandel.qcypher.domain.TextAnalyser
 import `in`.rchandel.qcypher.tools.QrAnalyser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,8 +27,12 @@ import javax.inject.Inject
 @HiltViewModel
 class ScannerViewModel @Inject constructor() : ViewModel() {
 
-    private val _scanResult = MutableSharedFlow<String>(replay = 1)
-    val scanResult: SharedFlow<String> = _scanResult
+    private val _scanResult = MutableSharedFlow<QRResult>(replay = 1)
+    val scanResult: SharedFlow<QRResult> = _scanResult
+
+    @Inject
+    @QRTextAnalyser
+    lateinit var textAnalyser: TextAnalyser
 
     fun bindCameraWithPreviewView(
         context: Context,
@@ -45,7 +52,8 @@ class ScannerViewModel @Inject constructor() : ViewModel() {
 
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context), QrAnalyser { result ->
             viewModelScope.launch(Dispatchers.IO) {
-                _scanResult.emit(result)
+                val qrResult = textAnalyser.classifyText(result)
+                _scanResult.emit(qrResult)
             }
         })
 

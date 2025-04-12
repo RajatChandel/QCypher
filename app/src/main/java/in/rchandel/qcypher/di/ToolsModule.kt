@@ -7,8 +7,14 @@ import dagger.hilt.components.SingletonComponent
 import `in`.rchandel.qcypher.domain.TextAnalyser
 import javax.inject.Qualifier
 
+@Qualifier
+annotation class QRTextAnalyser
+
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+abstract class ToolsModule {
 
+    @QRTextAnalyser
+    @Binds
+    abstract fun provideTextAnalyser(qrTextAnalyser: QRTextAnalyser) : TextAnalyser
 }
