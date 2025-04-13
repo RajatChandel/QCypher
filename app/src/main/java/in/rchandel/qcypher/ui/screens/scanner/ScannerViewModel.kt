@@ -16,7 +16,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import `in`.rchandel.qcypher.data.model.QRResult
 import `in`.rchandel.qcypher.di.QRTextAnalyser
-import `in`.rchandel.qcypher.domain.TextAnalyser
+import `in`.rchandel.qcypher.domain.textanalyser.TextAnalyser
 import `in`.rchandel.qcypher.tools.QrAnalyser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -27,7 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ScannerViewModel @Inject constructor() : ViewModel() {
 
-    private val _scanResult = MutableSharedFlow<QRResult>(replay = 1)
+    private val _scanResult = MutableSharedFlow<QRResult>(replay = 0)
     val scanResult: SharedFlow<QRResult> = _scanResult
 
     @Inject

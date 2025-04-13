@@ -31,7 +31,7 @@ fun AppNavigation() {
             ) {navBackStackEntry ->
             val qrJson = navBackStackEntry.arguments?.getString("qrJson") ?: ""
             val qrResult = qrJson.toQRResult()
-            ScanResultScreen(scannedText = qrResult)
+            ScanResultScreen(navController = navController, qrResult = qrResult)
         }
     }
 

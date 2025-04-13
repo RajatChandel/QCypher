@@ -1,11 +1,11 @@
-package `in`.rchandel.qcypher.domain
+package `in`.rchandel.qcypher.domain.textanalyser
 
 import android.util.Patterns
 import `in`.rchandel.qcypher.data.model.QRResult
 import `in`.rchandel.qcypher.data.model.QRType
 import javax.inject.Inject
 
-class QRTextAnalyser @Inject constructor() : TextAnalyser {
+class QRTextAnalyserImpl @Inject constructor() : TextAnalyser {
     override fun classifyText(text: String): QRResult {
         val trimmed = text.trim()
 

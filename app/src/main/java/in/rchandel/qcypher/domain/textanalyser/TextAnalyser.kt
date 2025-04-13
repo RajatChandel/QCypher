@@ -1,4 +1,4 @@
-package `in`.rchandel.qcypher.domain
+package `in`.rchandel.qcypher.domain.textanalyser
 
 import `in`.rchandel.qcypher.data.model.QRResult
 
