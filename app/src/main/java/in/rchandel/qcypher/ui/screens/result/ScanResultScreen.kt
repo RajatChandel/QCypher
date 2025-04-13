@@ -50,12 +50,15 @@ import `in`.rchandel.qcypher.core.uicomponents.ContactCard
 import `in`.rchandel.qcypher.core.uicomponents.EmailCard
 import `in`.rchandel.qcypher.core.uicomponents.PhoneCard
 import `in`.rchandel.qcypher.core.uicomponents.TextCard
+import `in`.rchandel.qcypher.core.uicomponents.UpiCard
 import `in`.rchandel.qcypher.core.uicomponents.UrlCard
 import `in`.rchandel.qcypher.core.uicomponents.WifiCard
 import `in`.rchandel.qcypher.data.model.ContactInfo
+import `in`.rchandel.qcypher.data.model.ParsedEmail
 import `in`.rchandel.qcypher.data.model.ParsedQRResult
 import `in`.rchandel.qcypher.data.model.QRResult
 import `in`.rchandel.qcypher.data.model.QRType
+import `in`.rchandel.qcypher.data.model.UPIInfo
 import `in`.rchandel.qcypher.data.model.WifiInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -160,7 +163,6 @@ fun ScanResultScreen(
     }
 }
 
-
 // Function to share text
 fun shareText(context: Context, text: String) {
     val sendIntent = Intent().apply {
@@ -185,9 +187,10 @@ fun ResultDetailCard(parsedResult: ParsedQRResult) {
     when (parsedResult.type) {
         QRType.URL -> UrlCard(parsedResult.data as String)
         QRType.PHONE -> PhoneCard(parsedResult.data as String)
-        QRType.EMAIL -> EmailCard(parsedResult.data as String)
+        QRType.EMAIL -> EmailCard(parsedResult.data as ParsedEmail)
         QRType.TEXT -> TextCard(parsedResult.data as String)
         QRType.WIFI -> WifiCard(parsedResult.data as WifiInfo)
         QRType.CONTACT -> ContactCard(parsedResult.data as ContactInfo)
+        QRType.UPI -> UpiCard(info = parsedResult.data as UPIInfo)
     }
 }

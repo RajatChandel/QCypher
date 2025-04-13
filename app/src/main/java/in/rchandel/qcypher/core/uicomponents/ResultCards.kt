@@ -1,6 +1,5 @@
 package `in`.rchandel.qcypher.core.uicomponents
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
@@ -32,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.rchandel.qcypher.R
 import `in`.rchandel.qcypher.data.model.ContactInfo
+import `in`.rchandel.qcypher.data.model.ParsedEmail
+import `in`.rchandel.qcypher.data.model.UPIInfo
 import `in`.rchandel.qcypher.data.model.WifiInfo
 
 @Composable
@@ -84,15 +85,29 @@ fun PhoneCard(phone: String) {
 }
 
 @Composable
-fun EmailCard(email: String) {
+fun EmailCard(email: ParsedEmail) {
     val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("mailto:${email}")
+                var mailTo = "mailto:" + email.emailAddress
+                var subjectAvailable = false
+                email.subject?.let {
+                    subjectAvailable = true
+                    mailTo = mailTo + "?&subject=" + Uri.encode(email.subject) }
+
+                email.body?.let {
+                    if(subjectAvailable) {
+                        mailTo = mailTo + "&body=" + Uri.encode(email.body)
+                    } else {
+                        mailTo = mailTo + "?&body=" + Uri.encode(email.body)
+                    }
+                }
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    data = Uri.parse(mailTo)
                 }
                 context.startActivity(intent)
             },
@@ -101,11 +116,19 @@ fun EmailCard(email: String) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Email", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
-            Text(email, color = Color.DarkGray)
+
+            Text("To: ${email.emailAddress}", color = Color.DarkGray)
+            email.subject?.let {
+                Spacer(Modifier.height(4.dp))
+                Text("Subject: $it", color = Color.DarkGray)
+            }
+            email.body?.let {
+                Spacer(Modifier.height(4.dp))
+                Text("Body: $it", color = Color.DarkGray)
+            }
         }
     }
 }
-
 @Composable
 fun TextCard(text: String) {
     Card(
@@ -164,16 +187,27 @@ fun WifiCard(wifiInfo: WifiInfo) {
 @Composable
 fun ContactCard(info: ContactInfo) {
     val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                val intent = Intent(Intent.ACTION_INSERT)
-                intent.type = ContactsContract.Contacts.CONTENT_TYPE
-                intent.putExtra(ContactsContract.Intents.Insert.NAME, info.name)
-                intent.putExtra(ContactsContract.Intents.Insert.PHONE, info.phone)
-                intent.putExtra(ContactsContract.Intents.Insert.EMAIL, info.email)
+                val intent = Intent(Intent.ACTION_INSERT).apply {
+                    type = ContactsContract.Contacts.CONTENT_TYPE
+                    putExtra(ContactsContract.Intents.Insert.NAME, info.name)
+                    putExtra(ContactsContract.Intents.Insert.EMAIL, info.email)
+                    putExtra(ContactsContract.Intents.Insert.JOB_TITLE, info.title)
+                    putExtra(ContactsContract.Intents.Insert.COMPANY, info.organization)
+                    putExtra(ContactsContract.Intents.Insert.NOTES, info.address)
+
+                    // Add the first phone number, if available
+                    info.phoneList
+                        ?.firstOrNull()
+                        ?.let { phone ->
+                            putExtra(ContactsContract.Intents.Insert.PHONE, phone)
+                        }
+                }
                 context.startActivity(intent)
             },
         elevation = CardDefaults.cardElevation(4.dp)
@@ -181,9 +215,44 @@ fun ContactCard(info: ContactInfo) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Contact", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             Spacer(Modifier.height(8.dp))
+
             info.name?.let { Text("Name: $it") }
-            info.phone?.let { Text("Phone: $it") }
+
+            info.phoneList?.forEachIndexed { index, phone ->
+                Text("Phone ${index + 1}: $phone")
+            }
+
             info.email?.let { Text("Email: $it") }
+            info.organization?.let { Text("Organization: $it") }
+            info.title?.let { Text("Title: $it") }
+            info.address?.let { Text("Address: $it") }
+        }
+    }
+}
+
+@Composable
+fun UpiCard(info: UPIInfo) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable {
+                val upiUri = "upi://pay?pa=${info.payeeAddress}&pn=${info.payeeName}&am=${info.amount}&cu=${info.currency}&url=${info.url}"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(upiUri))
+                context.startActivity(intent)
+            },
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("UPI Payment", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(Modifier.height(8.dp))
+            info.payeeName?.let { Text("Payee Name: $it") }
+            info.payeeAddress?.let { Text("Payee Address: $it") }
+            info.amount?.let { Text("Amount: ₹$it") }
+            info.currency?.let { Text("Currency: $it") }
+            info.url?.let { Text("Merchant URL: $it") }
         }
     }
 }

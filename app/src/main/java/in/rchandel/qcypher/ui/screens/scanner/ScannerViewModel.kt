@@ -25,14 +25,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ScannerViewModel @Inject constructor() : ViewModel() {
+class ScannerViewModel @Inject constructor(
+    @QRTextAnalyser private val textAnalyser: TextAnalyser
+) : ViewModel() {
 
     private val _scanResult = MutableSharedFlow<QRResult>(replay = 0)
     val scanResult: SharedFlow<QRResult> = _scanResult
-
-    @Inject
-    @QRTextAnalyser
-    lateinit var textAnalyser: TextAnalyser
 
     fun bindCameraWithPreviewView(
         context: Context,

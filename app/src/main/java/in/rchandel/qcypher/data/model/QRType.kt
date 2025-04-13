@@ -6,5 +6,6 @@ enum class QRType {
     EMAIL,
     WIFI,
     CONTACT,
-    TEXT
+    TEXT,
+    UPI
 }

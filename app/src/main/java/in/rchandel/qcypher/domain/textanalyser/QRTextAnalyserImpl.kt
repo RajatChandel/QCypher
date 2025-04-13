@@ -14,10 +14,21 @@ class QRTextAnalyserImpl @Inject constructor() : TextAnalyser {
             Patterns.WEB_URL.matcher(trimmed).matches() -> QRResult(trimmed, QRType.URL)
 
             // Phone number
-            Patterns.PHONE.matcher(trimmed).matches() -> QRResult(trimmed, QRType.PHONE)
+            trimmed.startsWith("tel:") || Patterns.PHONE.matcher(trimmed).matches() -> QRResult(trimmed, QRType.PHONE)
+
+            trimmed.startsWith("upi://") -> QRResult(trimmed, QRType.UPI)
 
             // Email
             Patterns.EMAIL_ADDRESS.matcher(trimmed).matches() -> QRResult(trimmed, QRType.EMAIL)
+
+            trimmed.trim().startsWith("mailto:") -> {
+                val email = trimmed.trim().removePrefix("mailto:").split("?")[0] // Remove parameters if any
+                if (Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    QRResult(trimmed, QRType.EMAIL)
+                } else {
+                    QRResult(trimmed, QRType.TEXT) // Fallback if email is invalid
+                }
+            }
 
             // WiFi config
             trimmed.startsWith("WIFI:") -> QRResult(trimmed, QRType.WIFI)
