@@ -1,3 +1,37 @@
 <resources>
+    <!-- Existing strings -->
     <string name="app_name">QCypher</string>
+    <string name="scan_result_title">Scan Result</string>
+    <string name="back">Back</string>
+    <string name="scan_successful">Scan Successful!</string>
+    <string name="share">Share</string>
+    <string name="copy">Copy</string>
+    <string name="scan_again">Scan Again</string>
+    <string name="share_via">Share via</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="clipboard_label">Scanned QR Code</string>
+
+    <!-- Missing strings -->
+    <string name="type_heading">QR Type</string>
+    <string name="type_email">Email</string>
+    <string name="to_heading">To</string>
+    <string name="subject_heading">Subject</string>
+    <string name="body_heading">Body</string>
+    <string name="website_heading">Website</string>
+    <string name="phone_heading">Phone Number</string>
+    <string name="wifi_heading">Wi-Fi Network</string>
+    <string name="ssid_heading">SSID</string>
+    <string name="password_heading">Password</string>
+    <string name="copy_password">Copy Password</string>
+    <string name="contact_heading">Contact</string>
+    <string name="name_heading">Name</string>
+    <string name="organization_heading">Organization</string>
+    <string name="title_heading">Title</string>
+    <string name="address_heading">Address</string>
+    <string name="upi_heading">UPI Payment</string>
+    <string name="payee_name_heading">Payee Name</string>
+    <string name="payee_address_heading">Payee Address</string>
+    <string name="amount_heading">Amount</string>
+    <string name="currency_heading">Currency</string>
+    <string name="merchant_url_heading">Merchant URL</string>
 </resources>

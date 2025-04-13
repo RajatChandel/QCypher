@@ -1,6 +1,7 @@
 package `in`.rchandel.qcypher.navigation
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavHost
@@ -21,6 +22,7 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = Routes.SCANNER) {
         composable(Routes.SCANNER) {
             ScannerScreen(onScanSuccess = {qrResult ->
+                Log.d("THE_DEBUG", "scan result called")
                 navController.navigate("${Routes.RESULT}/${Uri.encode(qrResult.toJson())}")
             })
         }

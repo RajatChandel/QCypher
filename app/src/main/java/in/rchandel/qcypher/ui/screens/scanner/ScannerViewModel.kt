@@ -1,6 +1,7 @@
 package `in`.rchandel.qcypher.ui.screens.scanner
 
 import android.content.Context
+import android.util.Log
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -21,6 +22,8 @@ import `in`.rchandel.qcypher.tools.QrAnalyser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,7 +50,6 @@ class ScannerViewModel @Inject constructor(
         val imageAnalysis = ImageAnalysis.Builder()
             .setBackpressureStrategy(STRATEGY_KEEP_ONLY_LATEST)
             .build()
-
         imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(context), QrAnalyser { result ->
             viewModelScope.launch(Dispatchers.IO) {
                 val qrResult = textAnalyser.classifyText(result)

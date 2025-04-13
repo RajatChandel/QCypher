@@ -9,6 +9,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,7 +40,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -74,112 +78,121 @@ fun ScanResultScreen(
     val scrollState = rememberScrollState()
 
     LaunchedEffect(key1 = qrResult) {
-        if(!isParsed) {
+        if (!isParsed) {
             viewModel.parseQRResult(qrResult)
         }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Scan Result") }, navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            TopAppBar(
+                title = { Text("") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(id = R.string.back)
+                        )
+                    }
                 }
-            })
+            )
         }
     ) { contentPadding ->
         parsedResult?.let {
-            Column(
+            Box(
                 modifier = Modifier
                     .padding(contentPadding)
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(dimensionResource(id = R.dimen.padding_x_large)),
             ) {
-                // Scan Successful Image
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_history_24), // Add an image in res/drawable
-                    contentDescription = "Scan Successful",
-                    modifier = Modifier
-                        .size(150.dp)
-                        .padding(16.dp)
-                )
-
-                Text(text = "Scan Successful!", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Card for scanned text
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(4.dp)
+                    shape = RoundedCornerShape(2),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = dimensionResource(id = R.dimen.elevation_small)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(id = R.dimen.padding_x_large))
+                        .align(Alignment.Center)
+
                 ) {
                     Text(
-                        text = qrResult.rawValue,
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Card with Share and Copy Buttons
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
-                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                            .padding(top = 16.dp),
+                        textAlign = TextAlign.Center,
+                        text = stringResource(id = R.string.scan_successful),
+                        fontSize = dimensionResource(id = R.dimen.font_size_xx_large).value.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    Card(
+                        shape = RoundedCornerShape(2),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = dimensionResource(id = R.dimen.elevation_small)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(dimensionResource(id = R.dimen.padding_x_large))
                     ) {
-                        Button(onClick = {
+                        Column( modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_x_large))) {
+                            ResultDetailCard(parsedResult = it)
+                        }
+                    }
+
+                    Column( modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = dimensionResource(
+                                id = R.dimen.padding_x_large
+                            )
+                        ), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button( modifier =  Modifier.fillMaxWidth(), onClick = {
                             shareText(context, qrResult.rawValue)
                         }) {
-                            Text(text = "Share")
+                            Text(text = stringResource(id = R.string.share))
                         }
 
-                        Button(onClick = {
+                        Button(modifier = Modifier.fillMaxWidth(), onClick = {
                             copyToClipboard(context, qrResult.rawValue)
                         }) {
-                            Text(text = "Copy")
+                            Text(text = stringResource(id = R.string.copy))
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-
-                ResultDetailCard(parsedResult = it)
-                Spacer(modifier = Modifier.height(16.dp))
-                // Back to Scanner Button
-                Button(onClick = { }) {
-                    Text(text = "Scan Again")
-                }
+//
+//                Button(
+//                    modifier = Modifier
+//                        .height(dimensionResource(id = R.dimen.button_height_medium))
+//                        .fillMaxWidth()
+//                        .align(Alignment.BottomCenter),
+//                    onClick = {
+//                        navController.popBackStack()
+//                    }) {
+//                    Text(text = stringResource(id = R.string.scan_again))
+//                }
             }
         }
     }
 }
 
-// Function to share text
 fun shareText(context: Context, text: String) {
     val sendIntent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, text)
         type = "text/plain"
     }
-    val shareIntent = Intent.createChooser(sendIntent, "Share via")
+    val shareIntent = Intent.createChooser(sendIntent, context.getString(R.string.share_via))
     context.startActivity(shareIntent)
 }
 
-// Function to copy text to clipboard
 fun copyToClipboard(context: Context, text: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    val clip = ClipData.newPlainText("Scanned QR Code", text)
+    val clip = ClipData.newPlainText(context.getString(R.string.clipboard_label), text)
     clipboard.setPrimaryClip(clip)
-    Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT)
+        .show()
 }
 
 @Composable

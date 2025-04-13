@@ -6,12 +6,14 @@ import android.provider.ContactsContract
 import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,10 +25,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import `in`.rchandel.qcypher.R
@@ -84,23 +92,35 @@ fun PhoneCard(phone: String) {
     }
 }
 
+class ParsedEmailPreviewParameterProvider : PreviewParameterProvider<ParsedEmail> {
+    override val values: Sequence<ParsedEmail>
+        get() = sequenceOf(
+            ParsedEmail(
+                "theodore.roosevelt@altostrat.com",
+                "Hello",
+                "This is a test email."
+            )
+        )
+}
+
+@Preview(showBackground = true)
 @Composable
-fun EmailCard(email: ParsedEmail) {
+fun EmailCard(@PreviewParameter(ParsedEmailPreviewParameterProvider::class) email: ParsedEmail) {
     val context = LocalContext.current
 
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
             .clickable {
                 var mailTo = "mailto:" + email.emailAddress
                 var subjectAvailable = false
                 email.subject?.let {
                     subjectAvailable = true
-                    mailTo = mailTo + "?&subject=" + Uri.encode(email.subject) }
+                    mailTo = mailTo + "?&subject=" + Uri.encode(email.subject)
+                }
 
                 email.body?.let {
-                    if(subjectAvailable) {
+                    if (subjectAvailable) {
                         mailTo = mailTo + "&body=" + Uri.encode(email.body)
                     } else {
                         mailTo = mailTo + "?&body=" + Uri.encode(email.body)
@@ -111,24 +131,47 @@ fun EmailCard(email: ParsedEmail) {
                 }
                 context.startActivity(intent)
             },
-        elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Email", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(Modifier.height(8.dp))
+        Column {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                text = stringResource(id = R.string.type_email), // Add "Email" to strings.xml
+                fontWeight = FontWeight.Medium,
+                fontSize = dimensionResource(id = R.dimen.font_size_x_large).value.sp
+            )
 
-            Text("To: ${email.emailAddress}", color = Color.DarkGray)
+            KeyAndValueColumn(key = stringResource(id = R.string.to_heading), value = email.emailAddress)
+
             email.subject?.let {
-                Spacer(Modifier.height(4.dp))
-                Text("Subject: $it", color = Color.DarkGray)
+            KeyAndValueColumn(key = stringResource(id = R.string.subject_heading), value = it)
             }
+
             email.body?.let {
-                Spacer(Modifier.height(4.dp))
-                Text("Body: $it", color = Color.DarkGray)
+                KeyAndValueColumn(key = stringResource(id = R.string.body_heading), value = it)
             }
         }
     }
 }
+
+@Composable
+fun KeyAndValueColumn(
+    key: String,
+    value: String,
+) {
+    Column(modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_x_large))) {
+        Text(
+            text = key, // Add "To" to strings.xml
+            fontSize = dimensionResource(id = R.dimen.font_size_medium).value.sp,
+        )
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xx_small)))
+        Text(
+            text = value,
+            fontSize = dimensionResource(id = R.dimen.font_size_large).value.sp,
+        )
+    }
+}
+
 @Composable
 fun TextCard(text: String) {
     Card(
@@ -172,12 +215,19 @@ fun WifiCard(wifiInfo: WifiInfo) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Password: ${wifiInfo.password}", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    "Password: ${wifiInfo.password}",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 IconButton(onClick = {
                     // Copy the Wi-Fi password to the clipboard
                     clipboardManager.setText(AnnotatedString(wifiInfo.password))
                 }) {
-                    Icon(painter = painterResource(id = R.drawable.baseline_content_copy_24) , contentDescription = "Copy Password")
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_content_copy_24),
+                        contentDescription = "Copy Password"
+                    )
                 }
             }
         }
@@ -239,7 +289,8 @@ fun UpiCard(info: UPIInfo) {
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                val upiUri = "upi://pay?pa=${info.payeeAddress}&pn=${info.payeeName}&am=${info.amount}&cu=${info.currency}&url=${info.url}"
+                val upiUri =
+                    "upi://pay?pa=${info.payeeAddress}&pn=${info.payeeName}&am=${info.amount}&cu=${info.currency}&url=${info.url}"
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(upiUri))
                 context.startActivity(intent)
             },

@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,8 @@ import androidx.core.content.ContextCompat
 import `in`.rchandel.qcypher.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import `in`.rchandel.qcypher.data.model.QRResult
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 
 @Composable
@@ -66,7 +69,7 @@ fun ScannerScreen(
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
 
     var cameraState by remember { mutableStateOf<Camera?>(null) }
-    var zoomLevel by remember { mutableStateOf(0f) }
+    var zoomLevel by remember { mutableFloatStateOf(0f) }
     var lensFacingState by remember { mutableIntStateOf(lensFacing) }
 
     val hasCameraPermission = remember {
@@ -91,9 +94,30 @@ fun ScannerScreen(
         }
     }
 
+    val previewView = remember { PreviewView(context) }
+
+    LaunchedEffect(lensFacingState, cameraProviderFuture) {
+        // This ensures the camera is bound only once when lensFacingState or cameraProviderFuture changes
+        previewView.apply {
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        }
+        cameraProviderFuture.get().let {
+            viewModel.bindCameraWithPreviewView(
+                context,
+                lifecycleOwner,
+                cameraProviderFuture,
+                lensFacingState,
+                previewView
+            ) { camera ->
+                cameraState = camera
+            }
+        }
+    }
+
     // Listen to scan result
     LaunchedEffect(Unit) {
-        viewModel.scanResult.collect { result ->
+        viewModel.scanResult.distinctUntilChanged().collect { result ->
             onScanSuccess(result)
         }
     }
@@ -114,23 +138,7 @@ fun ScannerScreen(
             Column(modifier = Modifier.fillMaxSize()) {
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
-                    factory = { ctx ->
-                        PreviewView(ctx).apply {
-                            scaleType = PreviewView.ScaleType.FILL_CENTER
-                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                            // The ViewModel bindCamera() will set the surface provider on this instance
-                        }.also { previewView ->
-                            // IMPORTANT: bind the camera using this actual PreviewView
-                            viewModel.bindCameraWithPreviewView(
-                                ctx,
-                                lifecycleOwner,
-                                cameraProviderFuture,
-                                lensFacingState,
-                                previewView
-                            ) { camera ->
-                                cameraState = camera
-                            }
-                        }
+                    factory = { previewView
                     }
                 )
             }
