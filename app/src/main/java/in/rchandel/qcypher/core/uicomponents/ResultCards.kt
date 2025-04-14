@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,10 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,6 +47,7 @@ import `in`.rchandel.qcypher.data.model.ContactInfo
 import `in`.rchandel.qcypher.data.model.ParsedEmail
 import `in`.rchandel.qcypher.data.model.UPIInfo
 import `in`.rchandel.qcypher.data.model.WifiInfo
+import `in`.rchandel.qcypher.ui.screens.result.shareText
 
 @Composable
 fun UrlCard(url: String) {
@@ -111,34 +117,14 @@ fun EmailCard(@PreviewParameter(ParsedEmailPreviewParameterProvider::class) emai
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                var mailTo = "mailto:" + email.emailAddress
-                var subjectAvailable = false
-                email.subject?.let {
-                    subjectAvailable = true
-                    mailTo = mailTo + "?&subject=" + Uri.encode(email.subject)
-                }
-
-                email.body?.let {
-                    if (subjectAvailable) {
-                        mailTo = mailTo + "&body=" + Uri.encode(email.body)
-                    } else {
-                        mailTo = mailTo + "?&body=" + Uri.encode(email.body)
-                    }
-                }
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse(mailTo)
-                }
-                context.startActivity(intent)
-            },
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Column {
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 text = stringResource(id = R.string.type_email), // Add "Email" to strings.xml
-                fontWeight = FontWeight.Medium,
-                fontSize = dimensionResource(id = R.dimen.font_size_x_large).value.sp
+                style = MaterialTheme.typography.titleMedium,
             )
 
             KeyAndValueColumn(key = stringResource(id = R.string.to_heading), value = email.emailAddress)
@@ -149,6 +135,37 @@ fun EmailCard(@PreviewParameter(ParsedEmailPreviewParameterProvider::class) emai
 
             email.body?.let {
                 KeyAndValueColumn(key = stringResource(id = R.string.body_heading), value = it)
+            }
+
+            Button(modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12),
+                colors = ButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                    disabledContentColor = MaterialTheme.colorScheme.onPrimary,
+                    disabledContainerColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                onClick = {
+                    var mailTo = "mailto:" + email.emailAddress
+                    var subjectAvailable = false
+                    email.subject?.let {
+                        subjectAvailable = true
+                        mailTo = mailTo + "?&subject=" + Uri.encode(email.subject)
+                    }
+
+                    email.body?.let {
+                        if (subjectAvailable) {
+                            mailTo = mailTo + "&body=" + Uri.encode(email.body)
+                        } else {
+                            mailTo = mailTo + "?&body=" + Uri.encode(email.body)
+                        }
+                    }
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        data = Uri.parse(mailTo)
+                    }
+                    context.startActivity(intent)
+                }) {
+                Text(text = stringResource(id = R.string.send_email), style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -162,12 +179,15 @@ fun KeyAndValueColumn(
     Column(modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_x_large))) {
         Text(
             text = key, // Add "To" to strings.xml
-            fontSize = dimensionResource(id = R.dimen.font_size_medium).value.sp,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Light,
         )
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xx_small)))
         Text(
             text = value,
-            fontSize = dimensionResource(id = R.dimen.font_size_large).value.sp,
+            maxLines = 8,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }

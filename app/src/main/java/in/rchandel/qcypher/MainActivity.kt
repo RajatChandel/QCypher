@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import `in`.rchandel.qcypher.navigation.AppNavigation
+import `in`.rchandel.qcypher.ui.theme.QCypherTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -14,7 +15,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AppNavigation()
+            QCypherTheme {
+                AppNavigation()
+            }
         }
     }
 }

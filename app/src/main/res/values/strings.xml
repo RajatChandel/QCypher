@@ -10,6 +10,7 @@
     <string name="share_via">Share via</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="clipboard_label">Scanned QR Code</string>
+    <string name="send_email">Send Email</string>
 
     <!-- Missing strings -->
     <string name="type_heading">QR Type</string>

@@ -8,6 +8,9 @@ import android.graphics.drawable.Icon
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,20 +28,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -86,6 +95,13 @@ fun ScanResultScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                ),
                 title = { Text("") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -103,75 +119,67 @@ fun ScanResultScreen(
                 modifier = Modifier
                     .padding(contentPadding)
                     .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(dimensionResource(id = R.dimen.padding_x_large)),
+                    .verticalScroll(scrollState),
             ) {
                 Card(
-                    shape = RoundedCornerShape(2),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = dimensionResource(id = R.dimen.elevation_small)
-                    ),
+                    shape = RoundedCornerShape(4),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(dimensionResource(id = R.dimen.padding_x_large))
-                        .align(Alignment.Center)
-
+                        .padding(dimensionResource(id = R.dimen.padding_large))
+                        .align(Alignment.Center),
+                    colors = CardColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        disabledContainerColor = MaterialTheme.colorScheme.surface,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = dimensionResource(id = R.dimen.elevation_medium)
+                    ),
                 ) {
-                    Text(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        textAlign = TextAlign.Center,
-                        text = stringResource(id = R.string.scan_successful),
-                        fontSize = dimensionResource(id = R.dimen.font_size_xx_large).value.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                    Card(
-                        shape = RoundedCornerShape(2),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = dimensionResource(id = R.dimen.elevation_small)
-                        ),
+                            .background(MaterialTheme.colorScheme.surface),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .padding(dimensionResource(id = R.dimen.padding_large))
+                                .size(dimensionResource(id = R.dimen.icon_size_medium))
+                                .clickable { shareText(context, qrResult.rawValue) },
+                            painter = painterResource(id = R.drawable.baseline_share_24),
+                            contentDescription = "",
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                        )
+
+                        Text(
+                            modifier = Modifier,
+                            textAlign = TextAlign.Center,
+                            text = stringResource(id = R.string.scan_successful),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+
+                        Image(
+                            modifier = Modifier
+                                .padding(dimensionResource(id = R.dimen.padding_large))
+                                .clickable { copyToClipboard(context, qrResult.rawValue) }
+                                .size(dimensionResource(id = R.dimen.icon_size_medium)),
+                            painter = painterResource(id = R.drawable.baseline_content_copy_24),
+                            contentDescription = "",
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                        )
+                    }
+
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(dimensionResource(id = R.dimen.padding_x_large))
                     ) {
-                        Column( modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_x_large))) {
-                            ResultDetailCard(parsedResult = it)
-                        }
-                    }
-
-                    Column( modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = dimensionResource(
-                                id = R.dimen.padding_x_large
-                            )
-                        ), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Button( modifier =  Modifier.fillMaxWidth(), onClick = {
-                            shareText(context, qrResult.rawValue)
-                        }) {
-                            Text(text = stringResource(id = R.string.share))
-                        }
-
-                        Button(modifier = Modifier.fillMaxWidth(), onClick = {
-                            copyToClipboard(context, qrResult.rawValue)
-                        }) {
-                            Text(text = stringResource(id = R.string.copy))
-                        }
+                        ResultDetailCard(parsedResult = it)
                     }
                 }
-//
-//                Button(
-//                    modifier = Modifier
-//                        .height(dimensionResource(id = R.dimen.button_height_medium))
-//                        .fillMaxWidth()
-//                        .align(Alignment.BottomCenter),
-//                    onClick = {
-//                        navController.popBackStack()
-//                    }) {
-//                    Text(text = stringResource(id = R.string.scan_again))
-//                }
             }
         }
     }
